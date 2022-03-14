@@ -9,13 +9,14 @@ PARSING_DESCRIPTION_TEXT = "Enter your songs for mashuping:" \
 
 #def main(base_song_path,vocal_song_path):
 def main():
-    vocal_song_path = 'C:/Users/refae/Desktop/song1'
+    vocal_song_path = 'C:/Users/refae/Desktop/song2.wav'
     inference.main(vocal_song_path)
 
 
 if __name__ == '__main__':
     main()
 
+    exit()
 
     parser = argparse.ArgumentParser(description=PARSING_DESCRIPTION_TEXT)
     parser.add_argument('-b', "--base_song_path", help="Path to base song")
