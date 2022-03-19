@@ -105,15 +105,13 @@ class Separator(object):
         return y_spec, v_spec
 
 
-def main(file_path):
+def main(file_path,is_base):
 
 
     p = argparse.ArgumentParser()
     p.add_argument('--gpu', '-g', type=int, default=-1)
     p.add_argument('--pretrained_model', '-P', type=str, default='models/baseline.pth')
-
-    #p.add_argument('--input', '-i', required=True)
-
+    #p.add_argument('--input', '-i', required=True) ------------ this was required because this program is used by cmd...
     p.add_argument('--sr', '-r', type=int, default=44100)
     p.add_argument('--n_fft', '-f', type=int, default=2048)
     p.add_argument('--hop_length', '-H', type=int, default=1024)
@@ -154,15 +152,16 @@ def main(file_path):
     else:
         y_spec, v_spec = sp.separate(X_spec)
 
-    print('inverse stft of instruments...', end=' ')
-    wave = spec_utils.spectrogram_to_wave(y_spec, hop_length=args.hop_length)
-    print('done')
-    sf.write('{}_Instruments.wav'.format(basename), wave.T, sr)
-
-    print('inverse stft of vocals...', end=' ')
-    wave = spec_utils.spectrogram_to_wave(v_spec, hop_length=args.hop_length)
-    print('done')
-    sf.write('{}_Vocals.wav'.format(basename), wave.T, sr)
+    if is_base :
+        print('inverse stft of instruments...', end=' ')
+        wave = spec_utils.spectrogram_to_wave(y_spec, hop_length=args.hop_length)
+        print('done')
+        sf.write('{}_Instruments.wav'.format(basename), wave.T, sr)
+    else:   #it's vocals song
+        print('inverse stft of vocals...', end=' ')
+        wave = spec_utils.spectrogram_to_wave(v_spec, hop_length=args.hop_length)
+        print('done')
+        sf.write('{}_Vocals.wav'.format(basename), wave.T, sr)
 
     """
     if args.output_image:
