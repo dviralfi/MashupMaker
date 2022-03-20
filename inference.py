@@ -105,6 +105,22 @@ class Separator(object):
         return y_spec, v_spec
 
 
+def mix_base_and_vocal(base_wave_form, base_sample_rate, vocal_wave_form, mix_file_name):
+    print(type(base_wave_form),"\n",type(vocal_wave_form))
+
+    if len(base_wave_form) < len(vocal_wave_form):
+        new_arr = np.append(base_wave_form, range(len(vocal_wave_form) - len(base_wave_form)))
+        base_wave_form = new_arr
+    else:
+        new_arr = np.append(vocal_wave_form, range(len(base_wave_form) - len(vocal_wave_form)))
+        vocal_wave_form = new_arr
+    #mix_wav_form =  np.concatenate((base_wave_form,vocal_wave_form))
+    mix_wav_form = base_wave_form + vocal_wave_form
+   
+
+    sf.write('{}.wav'.format(mix_file_name), mix_wav_form, base_sample_rate)
+    print("Mixed the songs !!!")
+
 def main(file_path,is_base):
 
 
@@ -155,12 +171,12 @@ def main(file_path,is_base):
     if is_base :
         print('inverse stft of instruments...', end=' ')
         wave = spec_utils.spectrogram_to_wave(y_spec, hop_length=args.hop_length)
-        print('done')
+        print('Instruments seperation done')
         sf.write('{}_Instruments.wav'.format(basename), wave.T, sr)
     else:   #it's vocals song
         print('inverse stft of vocals...', end=' ')
         wave = spec_utils.spectrogram_to_wave(v_spec, hop_length=args.hop_length)
-        print('done')
+        print('Vocals seperation done')
         sf.write('{}_Vocals.wav'.format(basename), wave.T, sr)
 
     """
