@@ -1,5 +1,16 @@
 __author__ = "Dvir Alfi"
 
+
+"""
+Mashup Maker - is an Automatic AI song mushap maker, supported by 'vocal-remover-5' python module and 'librosa' python music mudole.
+This program is getting from the user 2 songs, and mashups them into one song that has the instruments from the one, and the vocals from the other.
+The program seperates the vocals and the instruments from each song, detects the BPM and Scale, and mushaps them into onw full song.
+
+Gets: 2 songs
+Returns: 1 mashup song
+
+"""
+
 import argparse
 import inference    # Vocal Remover 5 Open Source Code
 import librosa
@@ -30,8 +41,8 @@ def get_unique_file_name(basename,file_path=str(os.getcwd()), ext='wav'):
     :param ext: the extension of the file, for example '.txt', '.py', '.mid' .
 
     :return: a unique file path with a unique name that doesnt exists in the path of the given folder.
-             for example, if it has: Midis/RandoMMelody, then, it will return: Midis/RandoMMelody_2,
-              and that in the next process: Midis/RandoMMelody_3, etc.
+            for example, if it has: 'a x b Mushap' , then, it will return: 'a x b Mushap_2'
+            and that in the next process: 'a x b Mushap_3', etc.
 
     """
 
@@ -60,24 +71,36 @@ def main(base_song_path,vocal_song_path):
 
     # Recognize each song's BPM & Scale 
 
+        # recognize BPM:
     base_bpm = get_song_bpm(base_wave_form,base_sample_rate)
     vocal_bpm = get_song_bpm(vocal_wave_form,vocal_sample_rate)
     
-    if base_bpm > 150:
+    if base_bpm > 150:                  # if the bpm is too fast, the vocals wont be heard properly, and will sound horrible and not human.
         base_bpm = int(base_bpm / 2)
-    if vocal_bpm > 150:
+    if vocal_bpm > 150:                 # on the other hand if the instruments will be too fast the song will sound bad and not recognizable by the listener.
         vocal_bpm = int(vocal_bpm / 2)
-        
 
     print("Base BPM:",base_bpm,"Vocal BPM:",vocal_bpm)
 
-    # Recognize the Scale of each song:
+        # Recognize Scale:
     pass
     pass
     pass
 
     base_scale = "C"
     vocal_scale = "G#"
+
+
+
+    # Seperating the Vocals and Instruments from each song:
+
+    #inference.main(base_song_path,is_base=True)
+    #inference.main(vocal_song_path,is_base=False)
+
+    # Reading the seperated files :
+
+    base_wave_form, base_sample_rate = librosa.load(str(os.path.dirname(os.path.realpath(base_song_path)))+str(os.path.basename(base_song_path).split('.')[0])+'_Instruments')
+    vocal_wave_form, vocal_sample_rate = librosa.load(str(os.path.dirname(os.path.realpath(vocal_song_path)))+str(os.path.basename(vocal_song_path).split('.')[0])+'_Vocals')
 
     # Adjusting the base Scale to the vocal Scale: 
     base_wave_form = librosa.effects.pitch_shift(y=base_wave_form, sr=base_sample_rate, n_steps=abs(CHROMATIC_KEYS.index(base_scale)-CHROMATIC_KEYS.index(vocal_scale)))
@@ -93,22 +116,15 @@ def main(base_song_path,vocal_song_path):
 
     # Mixing the elements together:
 
+        #Finding unique name for the mushap file:
+    file_extension = os.path.basename(vocal_song_path).split('.')[1] 
+    file_path = os.path.dirname(os.path.realpath(vocal_song_path))
     mix_file_name ='{} x {} Mashup by MashupMaker'.format(os.path.basename(vocal_song_path).split('.')[0],os.path.basename(base_song_path).split('.')[0])
     
-    mix_file_name = get_unique_file_name(mix_file_name)
-    
+    mix_file_name = get_unique_file_name(mix_file_name, file_path=file_path, ext=file_extension)
+
     inference.mix_base_and_vocal(base_wave_form, base_sample_rate, vocal_wave_form, mix_file_name)
                                 
-   
-    exit()
-
-
-
-    # Seperating the Vocals and Instruments from each song:
-    inference.main(base_song_path,is_base=True)
-    inference.main(vocal_song_path,is_base=False)
-
-
 
 if __name__ == '__main__':
 
