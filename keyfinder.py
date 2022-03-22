@@ -3,6 +3,7 @@ import librosa
 
 """
 Credit to jackmcarthur for this algorithm!
+Thanks!
 
 GitHub - https://github.com/jackmcarthur/musical-key-finder.git
 
