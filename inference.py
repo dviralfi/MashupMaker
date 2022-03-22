@@ -7,11 +7,7 @@ import soundfile as sf
 import torch
 from tqdm import tqdm
 
-from lib import dataset
-from lib import nets
-from lib import spec_utils
-from lib import utils
-
+from lib import dataset, nets, spec_utils, utils
 
 class Separator(object):
 
@@ -105,30 +101,9 @@ class Separator(object):
         return y_spec, v_spec
 
 
-def mix_base_and_vocal(base_wave_form, base_sample_rate, vocal_wave_form, mix_file_name):
-    print(type(base_wave_form),"\n",type(vocal_wave_form))
-
-
-    # because librosa is using ndarrays by NumPy, the adding of 2 ndarrays is allowed only when the length and the dimensions of them is equal.
-    # here it finds if one of the arrays is bigger then the other and append to one of them if so.
-    # this is because the program needs the arrays to be joind by overlay and not one after the other(because its 2 elements of music that needs to be played at the same time).
-
-    if len(base_wave_form) < len(vocal_wave_form):
-        new_arr = np.append(base_wave_form, range(len(vocal_wave_form) - len(base_wave_form)))
-        base_wave_form = new_arr
-    else:
-        new_arr = np.append(vocal_wave_form, range(len(base_wave_form) - len(vocal_wave_form)))
-        vocal_wave_form = new_arr
-
-    mix_wav_form = base_wave_form + vocal_wave_form
-   
-
-    sf.write('{}.wav'.format(mix_file_name), mix_wav_form, base_sample_rate) # soundFile Module is writing the new file.
-    print("Mixed the songs !!!")
-
 def main(file_path,is_base):
     """
-    Returns : nothing
+    Returns : name of the seperated file
 
     
     :param file_path: the path of the file
@@ -188,11 +163,15 @@ def main(file_path,is_base):
         print('Instruments seperation done')
         sf.write('{}_Instruments.wav'.format(basename), wave.T, sr)
 
+        return '{}_Instruments.wav'.format(basename)
+
     else:       # it's vocals song
         print('inverse stft of vocals...', end=' ')
         wave = spec_utils.spectrogram_to_wave(v_spec, hop_length=args.hop_length)
         print('Vocals seperation done')
         sf.write('{}_Vocals.wav'.format(basename), wave.T, sr)
+
+        return '{}_Vocals.wav'.format(basename)
 
     """
     if args.output_image:
