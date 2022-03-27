@@ -15,6 +15,8 @@ Returns: 1 mashup song
 import argparse
 from email.mime import base
 
+from torch import float32
+
 import inference    # Vocal Remover 5 Open Source Code
 import librosa
 import os
@@ -25,7 +27,6 @@ from pyACA import computePitch
 import keyfinder
 from math import log, sqrt
 from statistics import mean
-import pydub
 
 PARSING_DESCRIPTION_TEXT = "Enter your songs for mashuping:" \
                             "-b - Path to base song.\n" \
@@ -44,6 +45,7 @@ def detect_pitch(y, sr, t):
   return pitch
 """
 
+
 def get_dbs(file_path):
     
     wave_form, sample_rate = librosa.load(file_path)
@@ -57,13 +59,6 @@ def get_dbs(file_path):
     chunks = np.array_split(wave_form, wave_form.size/(sample_rate/2))
     dbs = [20*log( sqrt(mean(chunk**2)),10 ) for chunk in chunks]
     return dbs
-
-def read_sound_file(file_path):
-    """MP3 to numpy array"""
-    file_loader = pydub.AudioSegment.from_mp3(file_path)
-    wave_form = np.array(file_loader.get_array_of_samples(),dtype=np.float32)
-    
-    return wave_form, file_loader.frame_rate
 
 
 def mix_base_and_vocal(base_wf, vocal_wf, mix_file_name, sr=DEFAULT_SAMPLE_RATE):
@@ -126,11 +121,6 @@ def get_song_bpm(wave_form, sample_rate):
     
 
 def main(base_song_path,vocal_song_path):
-
-
-    #print(get_dbs(base_song_path))
-    #exit()
-
     """
 
     Steps:
@@ -145,17 +135,23 @@ def main(base_song_path,vocal_song_path):
     
     """
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    #print(get_dbs(base_song_path))
+    #exit()
 
+ 
+
+#---------------------------------------------------------------------------- LOADING ---------------------------------------------------------------------------
     # Loading the songs into a computible sound files:   
-    # 
+    
 
     base_wave_form, base_sample_rate = librosa.load(base_song_path,sr=DEFAULT_SAMPLE_RATE)
     vocal_wave_form, vocal_sample_rate = librosa.load(vocal_song_path,sr=DEFAULT_SAMPLE_RATE)
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    
+#--------------------------------------------------------------------------- BPM & SCALE -------------------------------------------------------------------------
     # Recognize each song's BPM & Scale 
+
                      
         # Recognize BPM:
     base_bpm = get_song_bpm(base_wave_form,base_sample_rate)
@@ -190,45 +186,49 @@ def main(base_song_path,vocal_song_path):
 
     base_obj = keyfinder.Tonal_Fragment(base_wave_form,base_sample_rate)
     base_f0 = base_obj.get_key()[0].split(' ')[0]
+    base_scale = base_obj.get_key()[0].split(' ')[1]
+
 
     vocal_obj = keyfinder.Tonal_Fragment(vocal_wave_form,vocal_sample_rate)
     vocal_f0 = vocal_obj.get_key()[0].split(' ')[0]
+    vocal_scale = vocal_obj.get_key()[0].split(' ')[1]
 
+    if vocal_scale != base_scale:
+        print('The musical scale of vocal song is : {} \nthe musical scale of the base song is : {}'.format(vocal_scale,base_scale))
+        #exit()
+   
 
-    print("Base Scale:", base_f0)
-    print("Vocal Scale:", vocal_f0)
+    print("Base Key:", base_f0)
+    print("Vocal Key:", vocal_f0)
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+#------------------------------------------------------- SEPERATING -------------------------------------------------
     # Seperating the Vocals and Instruments from each song:
+
 
     #seperated_base_file_name = inference.main(base_song_path,is_base=True)
     #seperated_vocal_file_name = inference.main(vocal_song_path,is_base=False)
 
-    seperated_base_file_name ='h.wav'
-    seperated_vocal_file_name = 't.wav'
 
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------- LOADING SEPERATIONS ------------------------------------------
     # Loading the seperated files :
 
     # just for testing:
-    #seperated_base_file_name = "pardes_Instruments.wav"
-    #seperated_vocal_file_name = "leva_Vocals.wav"
+    seperated_base_file_name = "er_Instruments.wav"
+    seperated_vocal_file_name = "derech_Vocals.wav"
 
+    
     sep_base_wave_form, sep_base_sample_rate = librosa.load(os.getcwd()+'\\'+seperated_base_file_name,sr=DEFAULT_SAMPLE_RATE)
-
     sep_vocal_wave_form, sep_vocal_sample_rate = librosa.load(os.getcwd()+'\\'+seperated_vocal_file_name,sr=DEFAULT_SAMPLE_RATE)
     
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+#---------------------------------------------------------------- ADJUSTING -----------------------------------------------------------------------
     # Adjusting the base Scale & BPM to the vocal Scale & BPM: 
+
+
     n_steps = CHROMATIC_KEYS.index(vocal_f0)-CHROMATIC_KEYS.index(base_f0)
     print("steps between vocal and base keys:",base_f0,'-',vocal_f0,':',n_steps)
 
-    new_base_wave_form = librosa.effects.pitch_shift(y=sep_base_wave_form, sr=base_sample_rate, n_steps=n_steps)
+    new_base_wave_form = librosa.effects.pitch_shift(y=sep_base_wave_form, sr=sep_base_sample_rate, n_steps=n_steps)
     
     # Adjusting the vocal BPM to the base BPM: 
     
@@ -239,27 +239,32 @@ def main(base_song_path,vocal_song_path):
 
     new_vocal_wave_form = librosa.effects.time_stretch(y=sep_vocal_wave_form, rate=stretch_rate)
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------- UNIQUE FILE NAME ---------------------------------------------------------------------------------------------------------------------------------
+
 
     # Finding unique name for the mashup file:
     file_extension = os.path.basename(vocal_song_path).split('.')[1] 
+    if file_extension != 'wav' or file_extension != 'flac':
+        file_extension = 'wav'
+
     file_path = os.path.dirname(os.path.realpath(vocal_song_path))
-    mix_file_name ='{} x {} by MashupMaker'.format(os.path.basename(vocal_song_path).split('.')[0],os.path.basename(base_song_path).split('.')[0])
+    mix_file_name ='{}_x_{}_by_MashupMaker'.format(os.path.basename(vocal_song_path).split('.')[0],os.path.basename(base_song_path).split('.')[0])
     
     mix_file_name = get_unique_file_name(mix_file_name, file_path=file_path, ext=file_extension)
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------- MIXING -------------------------------------------------------------------------------------------------------------------------
 
     # Mixing the seperated elements together:
     mix_base_and_vocal(new_base_wave_form, new_vocal_wave_form, mix_file_name)
                                 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
     
-    base_song_path = 'C:/Users/refae/Desktop/h.wav'
-    vocal_song_path = 'C:/Users/refae/Desktop/t.wav'
+    base_song_path = 'C:/Users/refae/Desktop/er.mp3'
+    vocal_song_path = 'C:/Users/refae/Desktop/derech.mp3'
 
     main(base_song_path,vocal_song_path)
 
