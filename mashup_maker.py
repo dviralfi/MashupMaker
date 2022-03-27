@@ -15,8 +15,6 @@ Returns: 1 mashup song
 import argparse
 from email.mime import base
 
-from functools import reduce
-from unittest.mock import DEFAULT
 import inference    # Vocal Remover 5 Open Source Code
 import librosa
 import os
@@ -25,7 +23,9 @@ import numpy as np
 import soundfile as sf
 from pyACA import computePitch
 import keyfinder
-
+from math import log, sqrt
+from statistics import mean
+import pydub
 
 PARSING_DESCRIPTION_TEXT = "Enter your songs for mashuping:" \
                             "-b - Path to base song.\n" \
@@ -43,6 +43,27 @@ def detect_pitch(y, sr, t):
 
   return pitch
 """
+
+def get_dbs(file_path):
+    
+    wave_form, sample_rate = librosa.load(file_path)
+    # basically taking a reading every half a second - the size of the data 
+    # divided by the sample rate gives us 1 second chunks so I chop 
+    # sample rate in half for half second chunks
+
+    chunks = np.array_split(wave_form, 4096)
+    dbs = [20*log( sqrt(mean(chunk**2)),10 ) for chunk in chunks]
+    return dbs
+    chunks = np.array_split(wave_form, wave_form.size/(sample_rate/2))
+    dbs = [20*log( sqrt(mean(chunk**2)),10 ) for chunk in chunks]
+    return dbs
+
+def read_sound_file(file_path):
+    """MP3 to numpy array"""
+    file_loader = pydub.AudioSegment.from_mp3(file_path)
+    wave_form = np.array(file_loader.get_array_of_samples(),dtype=np.float32)
+    
+    return wave_form, file_loader.frame_rate
 
 
 def mix_base_and_vocal(base_wf, vocal_wf, mix_file_name, sr=DEFAULT_SAMPLE_RATE):
@@ -106,6 +127,10 @@ def get_song_bpm(wave_form, sample_rate):
 
 def main(base_song_path,vocal_song_path):
 
+
+    #print(get_dbs(base_song_path))
+    #exit()
+
     """
 
     Steps:
@@ -122,7 +147,9 @@ def main(base_song_path,vocal_song_path):
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    # Loading the songs into a computible sound files:      
+    # Loading the songs into a computible sound files:   
+    # 
+
     base_wave_form, base_sample_rate = librosa.load(base_song_path,sr=DEFAULT_SAMPLE_RATE)
     vocal_wave_form, vocal_sample_rate = librosa.load(vocal_song_path,sr=DEFAULT_SAMPLE_RATE)
 
@@ -134,10 +161,16 @@ def main(base_song_path,vocal_song_path):
     base_bpm = get_song_bpm(base_wave_form,base_sample_rate)
     vocal_bpm = get_song_bpm(vocal_wave_form,vocal_sample_rate)
     
-    if base_bpm > 160:                  # if the bpm is too fast, the vocals wont be heard properly, and will sound horrible and not human.
+    if base_bpm > 165:                  # if the bpm is too fast, the vocals wont be heard properly, and will sound horrible and not human.
         base_bpm = int(base_bpm / 2)
-    if vocal_bpm > 160:                 # on the other hand if the instruments will be too fast the song will sound bad and not recognizable by the listener.
+    elif base_bpm < 65:
+        base_bpm = int(base_bpm * 2)
+
+    if vocal_bpm > 165:                 # on the other hand if the instruments will be too fast the song will sound bad and not recognizable by the listener.
         vocal_bpm = int(vocal_bpm / 2)
+    elif vocal_bpm < 65:
+        vocal_bpm = int(vocal_bpm * 2)
+
 
     print("Base BPM:",base_bpm)
     print("Vocal BPM:",vocal_bpm,'\n')
@@ -169,8 +202,12 @@ def main(base_song_path,vocal_song_path):
 
     # Seperating the Vocals and Instruments from each song:
 
-    seperated_base_file_name = inference.main(base_song_path,is_base=True)
-    seperated_vocal_file_name = inference.main(vocal_song_path,is_base=False)
+    #seperated_base_file_name = inference.main(base_song_path,is_base=True)
+    #seperated_vocal_file_name = inference.main(vocal_song_path,is_base=False)
+
+    seperated_base_file_name ='h.wav'
+    seperated_vocal_file_name = 't.wav'
+
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -221,8 +258,8 @@ def main(base_song_path,vocal_song_path):
 if __name__ == '__main__':
 
     
-    base_song_path = 'C:/Users/refae/Desktop/pardes.wav'
-    vocal_song_path = 'C:/Users/refae/Desktop/leva.wav'
+    base_song_path = 'C:/Users/refae/Desktop/h.wav'
+    vocal_song_path = 'C:/Users/refae/Desktop/t.wav'
 
     main(base_song_path,vocal_song_path)
 
@@ -230,7 +267,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description=PARSING_DESCRIPTION_TEXT)
     parser.add_argument('-b', "--base_song_path", help="Path to base song")
-    parser.add_argument('v','--vocal_song_path', help="Path to vocal song")
+    parser.add_argument('-v','--vocal_song_path', help="Path to vocal song")
 
     args = parser.parse_args()
 
