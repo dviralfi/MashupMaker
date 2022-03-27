@@ -1,7 +1,11 @@
 # PyTorch Audio - install from https://pytorch.org/get-started/locally/
 # torch>=1.5.1
 # torchvision>=0.6.1
+#ffmpeg install 'master' zip file from - https://ffmpeg.org/ -> https://github.com/BtbN/FFmpeg-Builds/releases
+#move files in bin to xcript directory.
+
 pydub #for mp3 support
 tqdm>=4.30
 librosa>=0.6.3,<0.9
+ffmpeg
 opencv_python>=4.2.0
