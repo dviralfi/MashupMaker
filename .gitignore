@@ -13,7 +13,7 @@
 *.mp3
 *.mp4
 *.flac
-
+*.exe
 *~
 .vscode/
 pyACA/
