@@ -1,7 +1,7 @@
-# install from https://pytorch.org/get-started/locally/
+# PyTorch Audio - install from https://pytorch.org/get-started/locally/
 # torch>=1.5.1
 # torchvision>=0.6.1
-ffmpeg #for mp3 support
+pydub #for mp3 support
 tqdm>=4.30
 librosa>=0.6.3,<0.9
 opencv_python>=4.2.0
