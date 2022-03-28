@@ -12,6 +12,18 @@ Automatic AI song mushap maker.
 pip install -r requirements.txt
 ```
 
+### For MP3 support:
+
+'FFmpeg' module supports reading mp3 file.
+
+FFmpeg is used via its command-line interface. this is the reason that pip installing FFmpeg doesn't work. It needs the ffmpeg.exe file.
+
+download the ffmpeg installer from here - [FFMPEG Download Page](https://ffmpeg.org/)
+
+After it is installed make sure you can start ffmpeg from the command line (type ffmpeg -h). You will probably need to add the path to the install folder (eg c:\ffmpeg\bin) to the Windows path.
+
+Finally, make sure to restart your IDE. Visual Studio Code probably won't recognise the new path until after a reset.
+
 ## Usage
 The following command creates a mashup file from the two songs:
 
@@ -29,5 +41,5 @@ The program seperates the vocals and the instruments from each song, detects the
 
 #### Issues
 
-- [1] no support for mp3 files (only wav)
-- [2] no support for stereo (only mono)
+- [1]  no support for stereo (only mono)
+
