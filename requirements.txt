@@ -1,10 +1,23 @@
-# PyTorch Audio - install from https://pytorch.org/get-started/locally/
-# torch>=1.5.1
-# torchvision>=0.6.1
-# ffmpeg install 'master' zip file from - https://ffmpeg.org/ -> https://github.com/BtbN/FFmpeg-Builds/releases
-# A quick solution is to move the 3 files in 'bin' folder to your script working directory.
-# MORE INFORMATION ON THIS IN 'README' FILE .
-
+torch>=1.5.1
+torchvision>=0.6.1
 tqdm>=4.30
 librosa>=0.6.3,<0.9
 opencv_python>=4.2.0
+numpy>=1.21,<1.22 # numba 0.55 has no support for numpy 1.22 
+
+# matplotlib   # for PyAca Module and for General plotting
+
+### NOTES:
+
+# python >3.9, <3.10 , its better to create a venv with python3.9: `py -3.9 -m venv venv`
+
+# dont forget to install python3.9 from the official website, if you dont have it on you pc
+
+# vocal remover uses ffmpeg.
+# install `ffmpeg` instructions:
+
+#    install 'master' zip file from
+#       https://ffmpeg.org/ -> https://github.com/BtbN/FFmpeg-Builds/releases
+
+# A quick solution is to move the 3 files in 'bin' folder to your script working directory.
+# More information about this in 'README'.
