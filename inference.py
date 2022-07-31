@@ -101,7 +101,7 @@ class Separator(object):
         return y_spec, v_spec
 
 
-def main(file_path,is_base):
+def main(file_path, is_base, is_vocal):
     """
     Returns : name of the seperated file
 
@@ -163,15 +163,14 @@ def main(file_path,is_base):
         print('Instruments seperation done')
         sf.write('{}_Instruments.wav'.format(basename), wave.T, sr)
 
-        return '{}_Instruments.wav'.format(basename)
+        
 
-    else:       # it's vocals song
+    if is_vocal: # it's vocals song
         print('inverse stft of vocals...', end=' ')
         wave = spec_utils.spectrogram_to_wave(v_spec, hop_length=args.hop_length)
         print('Vocals seperation done')
         sf.write('{}_Vocals.wav'.format(basename), wave.T, sr)
 
-        return '{}_Vocals.wav'.format(basename)
 
     """
     if args.output_image:
