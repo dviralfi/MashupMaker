@@ -101,7 +101,7 @@ class Separator(object):
         return y_spec, v_spec
 
 
-def main(file_path, is_base, is_vocal):
+def main(file_path, is_base, is_vocal, args):
     """
     Returns : name of the seperated file
 
@@ -111,21 +111,6 @@ def main(file_path, is_base, is_vocal):
 
     :return: nothing. writes the result file in the directory of file_path
     """
-
-
-    p = argparse.ArgumentParser()
-    p.add_argument('--gpu', '-g', type=int, default=-1)
-    p.add_argument('--pretrained_model', '-P', type=str, default='models/baseline.pth')
-    #p.add_argument('--input', '-i', required=True) ------------ this was required because this program is used by cmd...
-    p.add_argument('--sr', '-r', type=int, default=44100)
-    p.add_argument('--n_fft', '-f', type=int, default=2048)
-    p.add_argument('--hop_length', '-H', type=int, default=1024)
-    p.add_argument('--batchsize', '-B', type=int, default=4)
-    p.add_argument('--cropsize', '-c', type=int, default=256)
-    p.add_argument('--output_image', '-I', action='store_true')
-    p.add_argument('--postprocess', '-p', action='store_true')
-    p.add_argument('--tta', '-t', action='store_true')
-    args = p.parse_args()
 
     print('loading model...', end=' ')
     device = torch.device('cpu')
@@ -181,5 +166,25 @@ def main(file_path, is_base, is_vocal):
         utils.imwrite('{}_Vocals.jpg'.format(basename), image)
     """
 
-if __name__ == '__main__':
-    main()
+
+def get_args():
+    
+    p = argparse.ArgumentParser()
+    p.add_argument('--gpu', '-g', type=int, default=-1)
+    p.add_argument('--pretrained_model', '-P', type=str, default='models/baseline.pth')
+    p.add_argument('--input', '-i', required=True) # ---- this is required because this program is used by cmd...
+    p.add_argument('--sr', '-r', type=int, default=44100)
+    p.add_argument('--n_fft', '-f', type=int, default=2048)
+    p.add_argument('--hop_length', '-H', type=int, default=1024)
+    p.add_argument('--batchsize', '-B', type=int, default=4)
+    p.add_argument('--cropsize', '-c', type=int, default=256)
+    p.add_argument('--output_image', '-I', action='store_true')
+    p.add_argument('--postprocess', '-p', action='store_true')
+    p.add_argument('--tta', '-t', action='store_true')
+    args = p.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = get_args()
+    main(file_path=args.input, is_base=True, is_vocal=True, args=args)
