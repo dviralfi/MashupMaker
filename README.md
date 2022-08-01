@@ -34,7 +34,7 @@ After it is installed make sure you can start ffmpeg from the command line (type
 The following command creates a mashup file from the two songs:
 
 ```
-python mashup_maker.py -b path/to/base/song -v path/to/vocal/song
+python mashup_maker.py -b "path/to/base/song" -v "path/to/vocal/song"
 ```
 
 ### Description
